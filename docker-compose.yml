@@ -1,0 +1,75 @@
+services:
+
+  mongo:
+    image: mongo:7
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    networks:
+      - credit-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - credit-network
+
+  customerservice:
+    build:
+      context: .
+      dockerfile: src/CustomerService/CustomerService.Web/Dockerfile
+    container_name: customerservice
+    depends_on:
+      - mongo
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Mongo__ConnectionString=mongodb://mongo:27017
+      - RabbitMQ__Host=rabbitmq
+    ports:
+      - "5001:8080"
+    networks:
+      - credit-network
+
+  creditproposalservice:
+    build:
+      context: .
+      dockerfile: src/CreditProposalService/CreditProposalService.Web/Dockerfile
+    container_name: creditproposalservice
+    depends_on:
+      - mongo
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Mongo__ConnectionString=mongodb://mongo:27017
+      - RabbitMQ__Host=rabbitmq
+    ports:
+      - "5002:8080"
+    networks:
+      - credit-network
+
+  cardservice:
+    build:
+      context: .
+      dockerfile: src/CardService/CardService.Web/Dockerfile
+    container_name: cardservice
+    depends_on:
+      - mongo
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Mongo__ConnectionString=mongodb://mongo:27017
+      - RabbitMQ__Host=rabbitmq
+    ports:
+      - "5003:8080"
+    networks:
+      - credit-network
+
+networks:
+  credit-network:
+    driver: bridge
