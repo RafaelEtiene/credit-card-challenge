@@ -19,7 +19,7 @@ public class CreditProposalWriter : ICreditProposalWriter
     }
 
     public async Task<bool> ExistsByCustomerIdAsync(
-        Guid customerId,
+        string customerId,
         CancellationToken cancellationToken)
     {
         var filter = Builders<CreditProposal>.Filter

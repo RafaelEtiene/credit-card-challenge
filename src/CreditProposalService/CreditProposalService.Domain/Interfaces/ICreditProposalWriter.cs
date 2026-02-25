@@ -6,6 +6,6 @@ public interface ICreditProposalWriter
 {
     Task SaveAsync(CreditProposal proposal, CancellationToken cancellationToken = default);
     Task<bool> ExistsByCustomerIdAsync(
-        Guid customerId,
+        string customerId,
         CancellationToken cancellationToken);
 }

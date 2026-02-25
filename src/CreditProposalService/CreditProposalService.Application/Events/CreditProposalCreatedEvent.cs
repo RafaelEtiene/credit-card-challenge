@@ -1,8 +1,8 @@
 namespace CreditProposalService.Application.Events;
 
 public record CreditProposalCreatedEvent(
-    Guid ProposalId,
-    Guid CustomerId,
+    string ProposalId,
+    string CustomerId,
     bool Approved,
-    decimal CreditLimit
+    decimal CreditLimit 
 );

@@ -4,6 +4,6 @@ namespace CreditProposalService.Application.Factories;
 
 public static class CreditProposalFactory
 {
-    public static CreditProposal Create(Guid customerId, int score) =>
+    public static CreditProposal Create(string customerId, int score) =>
         new CreditProposal(customerId, score);
 }
