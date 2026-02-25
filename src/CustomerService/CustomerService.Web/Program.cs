@@ -1,8 +1,12 @@
+using CustomerService.DependencyInjection;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
+
+builder.Services.AddServices(builder.Configuration);
 
 var app = builder.Build();
 
