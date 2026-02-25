@@ -2,7 +2,7 @@ namespace CustomerService.Domain.Entities;
 
 public class Customer
 {
-    public Guid Id { get; }
+    public string Id { get; }
     public string DocumentNumber { get; }
     public string Name { get; }
     public DateTime BirthDate { get; }
@@ -10,7 +10,7 @@ public class Customer
     
     public Customer(string documentNumber, string name, DateTime birthDate, int score)
     {
-        Id = Guid.NewGuid();
+        Id = Guid.NewGuid().ToString();
         DocumentNumber = documentNumber;
         Name = name;
         BirthDate = birthDate;

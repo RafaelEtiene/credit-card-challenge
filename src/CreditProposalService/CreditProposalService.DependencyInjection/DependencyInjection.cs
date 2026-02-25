@@ -1,3 +1,4 @@
+using CreditProposalService.Application.Commands;
 using CreditProposalService.Domain.Interfaces;
 using CreditProposalService.Infrastructure.Messaging.Consumers;
 using CreditProposalService.Infrastructure.Messaging.Publishers;
@@ -16,7 +17,7 @@ public static class DependencyInjection
     {
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(
-                typeof(DependencyInjection).Assembly));
+                typeof(CreateCreditProposalCommand).Assembly));
         
         services.AddSingleton<IMongoClient>(sp =>
         {

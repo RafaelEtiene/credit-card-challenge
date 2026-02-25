@@ -14,14 +14,14 @@ namespace CreditProposalService.Infrastructure.Messaging.Consumers;
 public class CustomerCreatedConsumer : BackgroundService
 {
     private readonly IConfiguration _configuration;
-    private readonly IMediator _mediator;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     public CustomerCreatedConsumer(
         IConfiguration configuration,
-        IMediator mediator)
+        IServiceScopeFactory scopeFactory)
     {
         _configuration = configuration;
-        _mediator = mediator;
+        _scopeFactory = scopeFactory;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -30,7 +30,8 @@ public class CustomerCreatedConsumer : BackgroundService
         {
             HostName = _configuration["RabbitMQ:Host"],
             UserName = _configuration["RabbitMQ:Username"],
-            Password = _configuration["RabbitMQ:Password"]
+            Password = _configuration["RabbitMQ:Password"],
+            AutomaticRecoveryEnabled = true
         };
 
         var connection = await factory.CreateConnectionAsync(stoppingToken);
@@ -47,16 +48,31 @@ public class CustomerCreatedConsumer : BackgroundService
 
         consumer.ReceivedAsync += async (_, ea) =>
         {
+            try
+            {
+                var json = Encoding.UTF8.GetString(ea.Body.ToArray());
+                var message = JsonSerializer.Deserialize<CustomerCreatedEvent>(json);
 
-            var json = Encoding.UTF8.GetString(ea.Body.ToArray());
-            var message = JsonSerializer.Deserialize<CustomerCreatedEvent>(json);
+                if (message is null)
+                {
+                    await channel.BasicNackAsync(ea.DeliveryTag, false, false);
+                    return;
+                }
 
-            await _mediator.Send(new CreateCreditProposalCommand(
-                message.CustomerId,
-                message.Score
-            ));
+                using var scope = _scopeFactory.CreateScope();
+                var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-            await channel.BasicAckAsync(ea.DeliveryTag, false);
+                await mediator.Send(new CreateCreditProposalCommand(
+                    message.CustomerId,
+                    message.Score
+                ));
+
+                await channel.BasicAckAsync(ea.DeliveryTag, false);
+            }
+            catch
+            {
+                await channel.BasicNackAsync(ea.DeliveryTag, false, true);
+            }
         };
 
         await channel.BasicConsumeAsync(
@@ -64,5 +80,7 @@ public class CustomerCreatedConsumer : BackgroundService
             autoAck: false,
             consumer: consumer,
             cancellationToken: stoppingToken);
+
+        await Task.Delay(Timeout.Infinite, stoppingToken);
     }
 }

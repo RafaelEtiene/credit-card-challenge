@@ -1,7 +1,7 @@
 namespace CustomerService.Application.Events;
 
 public record CustomerCreatedEvent(
-    Guid CustomerId,
+    string CustomerId,
     string Name,
     string Document,
     DateTime BirthDate,

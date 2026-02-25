@@ -1,3 +1,4 @@
+using CustomerService.Application.Commands;
 using CustomerService.Domain.Interfaces;
 using CustomerService.Infrastructure.Messaging;
 using CustomerService.Persistence.Writer;
@@ -15,7 +16,7 @@ public static class DependencyInjection
     {
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(
-                typeof(DependencyInjection).Assembly));
+                typeof(CreateCustomerCommand).Assembly));
         
         services.AddSingleton<IMongoClient>(sp =>
         {
