@@ -1,4 +1,4 @@
-namespace CustomerService.Application.Events;
+namespace CreditProposalService.Application.Events;
 
 public record CustomerCreatedEvent(
     Guid CustomerId,

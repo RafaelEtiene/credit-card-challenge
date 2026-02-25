@@ -1,10 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <OutputType>Exe</OutputType>
+        <OutputType>Library</OutputType>
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="MediatR" Version="14.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.2" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.3" />
+      <PackageReference Include="MongoDB.Driver" Version="3.6.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\CreditProposalService.Domain\CreditProposalService.Domain.csproj" />
+      <ProjectReference Include="..\CreditProposalService.Infrastructure\CreditProposalService.Infrastructure.csproj" />
+      <ProjectReference Include="..\CreditProposalService.Persistence\CreditProposalService.Persistence.csproj" />
+    </ItemGroup>
 
 </Project>

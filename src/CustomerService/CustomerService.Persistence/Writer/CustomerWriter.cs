@@ -13,7 +13,7 @@ public class CustomerWriter : ICustomerWriter
         _collection = database.GetCollection<Customer>("customers");
     }
 
-    public async Task SaveAsync(Customer customer, CancellationToken cancellationToken)
+    public async Task SaveAsync(Customer customer, CancellationToken cancellationToken = default)
     {
         await _collection.InsertOneAsync(customer, cancellationToken: cancellationToken);
     }

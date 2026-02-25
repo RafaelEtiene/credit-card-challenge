@@ -1,10 +1,10 @@
 using System.Text;
 using System.Text.Json;
-using CustomerService.Domain.Interfaces;
+using CreditProposalService.Domain.Interfaces;
 using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
 
-namespace CustomerService.Infrastructure.Messaging;
+namespace CreditProposalService.Infrastructure.Messaging.Publishers;
 
 public class RabbitMqPublisher : IEventPublisher
 {
@@ -15,7 +15,7 @@ public class RabbitMqPublisher : IEventPublisher
         _configuration = configuration;
     }
 
-    public async Task PublishAsync<T>(T message, CancellationToken cancellationToken = default)
+    public async Task PublishAsync<T>(T message, CancellationToken cancellationToken)
     {
         var factory = new ConnectionFactory
         {
@@ -24,8 +24,8 @@ public class RabbitMqPublisher : IEventPublisher
             Password = _configuration["RabbitMQ:Password"]
         };
 
-        var connection = await factory.CreateConnectionAsync(cancellationToken);
-        var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
+        await using var connection = await factory.CreateConnectionAsync(cancellationToken);
+        await using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
 
         var queueName = typeof(T).Name;
 
@@ -36,7 +36,8 @@ public class RabbitMqPublisher : IEventPublisher
             autoDelete: false,
             cancellationToken: cancellationToken);
 
-        var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
+        var body = Encoding.UTF8.GetBytes(
+            JsonSerializer.Serialize(message));
 
         await channel.BasicPublishAsync(
             exchange: "",
