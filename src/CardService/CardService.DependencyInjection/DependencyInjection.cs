@@ -1,6 +1,7 @@
 using CardService.Application.Commands;
 using CardService.Domain.Interfaces;
 using CardService.Infrastructure.Messaging.Consumers;
+using CardService.Infrastructure.Messaging.Publishers;
 using CardService.Persistence.Readers;
 using CardService.Persistence.Writers;
 using Microsoft.Extensions.Configuration;
@@ -33,8 +34,8 @@ public static class DependencyInjection
         
         services.AddHostedService<CreditProposalCreatedConsumer>();
         
-        services.AddHostedService<CreditProposalCreatedConsumer>();
         services.AddScoped<ICardReader, CardReader>();
         services.AddScoped<ICardWriter, CardWriter>();
+        services.AddScoped<IRabbitPublisher, RabbitPublisher>();
     }
 }
