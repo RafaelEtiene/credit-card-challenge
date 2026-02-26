@@ -11,21 +11,24 @@ public class CreateCreditProposalCommandHandler
     : IRequestHandler<CreateCreditProposalCommand, Unit>
 {
     private readonly ICreditProposalWriter _writer;
+    private readonly ICreditProposalReader _reader;
     private readonly IEventPublisher _publisher;
 
     public CreateCreditProposalCommandHandler(
         ICreditProposalWriter writer,
+        ICreditProposalReader reader,
         IEventPublisher publisher)
     {
         _writer = writer;
         _publisher = publisher;
+        _reader = reader;
     }
 
     public async Task<Unit> Handle(
         CreateCreditProposalCommand request,
         CancellationToken cancellationToken)
     {
-        var exists = await _writer.ExistsByCustomerIdAsync(
+        var exists = await _reader.ExistsByCustomerIdAsync(
             request.CustomerId,
             cancellationToken);
 
@@ -37,16 +40,19 @@ public class CreateCreditProposalCommandHandler
             request.Score);
 
         await _writer.SaveAsync(proposal, cancellationToken);
-        
-        var @event = new CreditProposalCreatedEvent(
-            proposal.Id,
-            proposal.CustomerId,
-            proposal.Approved,
-            proposal.CreditLimit);
-        
-        await _publisher.PublishAsync(@event,
-            cancellationToken);
 
+        if (proposal.Approved)
+        {
+            var @event = new CreditProposalCreatedEvent(
+                proposal.Id,
+                proposal.CustomerId,
+                proposal.CreditLimit,
+                proposal.TotalCards);
+
+            await _publisher.PublishAsync(@event,
+                cancellationToken);
+        }
+        
         return Unit.Value;
     }
 }

@@ -17,18 +17,4 @@ public class CreditProposalWriter : ICreditProposalWriter
     {
         await _collection.InsertOneAsync(proposal, cancellationToken: cancellationToken);
     }
-
-    public async Task<bool> ExistsByCustomerIdAsync(
-        string customerId,
-        CancellationToken cancellationToken)
-    {
-        var filter = Builders<CreditProposal>.Filter
-            .Eq(x => x.CustomerId, customerId);
-
-        var count = await _collection.CountDocumentsAsync(
-            filter,
-            cancellationToken: cancellationToken);
-
-        return count > 0;
-    }
 }

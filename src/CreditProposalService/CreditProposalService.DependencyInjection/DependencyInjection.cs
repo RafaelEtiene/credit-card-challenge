@@ -2,6 +2,7 @@ using CreditProposalService.Application.Commands;
 using CreditProposalService.Domain.Interfaces;
 using CreditProposalService.Infrastructure.Messaging.Consumers;
 using CreditProposalService.Infrastructure.Messaging.Publishers;
+using CreditProposalService.Persistence.Readers;
 using CreditProposalService.Persistence.Writers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,6 +35,7 @@ public static class DependencyInjection
         services.AddHostedService<CustomerCreatedConsumer>();
 
         services.AddScoped<ICreditProposalWriter, CreditProposalWriter>();
+        services.AddScoped<ICreditProposalReader, CreditProposalReader>();
         services.AddScoped<IEventPublisher, RabbitMqPublisher>();
     }
 }

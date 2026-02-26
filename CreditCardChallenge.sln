@@ -44,6 +44,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomerService.DependencyI
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreditProposalService.DependencyInjection", "src\CreditProposalService\CreditProposalService.DependencyInjection\CreditProposalService.DependencyInjection.csproj", "{63C62456-C7B6-4075-A56B-AB6896A8F2E6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardService.DependencyInjection", "src\CardService\CardService.DependencyInjection\CardService.DependencyInjection.csproj", "{456B6ED1-EDD7-4BCB-8102-1F25D2791BC3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -70,6 +72,7 @@ Global
 		{384DDD97-067F-4010-9B6E-510AA4BD0C76} = {84732DA9-3529-4A46-91E7-78AE69835E56}
 		{DA569F63-F550-40FC-9EFF-E4AEAB755A32} = {84732DA9-3529-4A46-91E7-78AE69835E56}
 		{63C62456-C7B6-4075-A56B-AB6896A8F2E6} = {023D5EDC-293E-4B1E-9C0D-CD89F36096F7}
+		{456B6ED1-EDD7-4BCB-8102-1F25D2791BC3} = {6850A878-6AE1-4F74-B162-D6F2AA8578C5}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{D7B374F3-1433-4036-BB66-8568F330639D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -140,5 +143,9 @@ Global
 		{63C62456-C7B6-4075-A56B-AB6896A8F2E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{63C62456-C7B6-4075-A56B-AB6896A8F2E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{63C62456-C7B6-4075-A56B-AB6896A8F2E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{456B6ED1-EDD7-4BCB-8102-1F25D2791BC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{456B6ED1-EDD7-4BCB-8102-1F25D2791BC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{456B6ED1-EDD7-4BCB-8102-1F25D2791BC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{456B6ED1-EDD7-4BCB-8102-1F25D2791BC3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

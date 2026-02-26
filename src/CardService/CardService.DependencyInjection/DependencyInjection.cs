@@ -1,13 +1,13 @@
-using CustomerService.Application.Commands;
-using CustomerService.Domain.Interfaces;
-using CustomerService.Infrastructure.Messaging;
-using CustomerService.Persistence.Readers;
-using CustomerService.Persistence.Writer;
+using CardService.Application.Commands;
+using CardService.Domain.Interfaces;
+using CardService.Infrastructure.Messaging.Consumers;
+using CardService.Persistence.Readers;
+using CardService.Persistence.Writers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 
-namespace CustomerService.DependencyInjection;
+namespace CardService.DependencyInjection;
 
 public static class DependencyInjection
 {
@@ -17,7 +17,7 @@ public static class DependencyInjection
     {
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(
-                typeof(CreateCustomerCommand).Assembly));
+                typeof(CreateCardCommand).Assembly));
         
         services.AddSingleton<IMongoClient>(sp =>
         {
@@ -28,11 +28,13 @@ public static class DependencyInjection
         services.AddScoped(sp =>
         {
             var client = sp.GetRequiredService<IMongoClient>();
-            return client.GetDatabase("CustomerDb");
+            return client.GetDatabase("CreditProposalDb");
         });
-
-        services.AddScoped<ICustomerWriter, CustomerWriter>();
-        services.AddScoped<ICustomerReader, CustomerReader>();
-        services.AddScoped<IEventPublisher, RabbitMqPublisher>();
+        
+        services.AddHostedService<CreditProposalCreatedConsumer>();
+        
+        services.AddHostedService<CreditProposalCreatedConsumer>();
+        services.AddScoped<ICardReader, CardReader>();
+        services.AddScoped<ICardWriter, CardWriter>();
     }
 }

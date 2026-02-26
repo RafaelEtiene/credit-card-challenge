@@ -5,7 +5,4 @@ namespace CreditProposalService.Domain.Interfaces;
 public interface ICreditProposalWriter
 {
     Task SaveAsync(CreditProposal proposal, CancellationToken cancellationToken = default);
-    Task<bool> ExistsByCustomerIdAsync(
-        string customerId,
-        CancellationToken cancellationToken);
 }

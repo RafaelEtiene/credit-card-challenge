@@ -1,4 +1,4 @@
-namespace CreditProposalService.Application.Events;
+namespace CardService.Application.Events;
 
 public record CreditProposalCreatedEvent(
     string ProposalId,
