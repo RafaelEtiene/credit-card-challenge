@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using CreditProposalService.Domain.Interfaces;
 using Microsoft.Extensions.Configuration;
+using Polly;
 using RabbitMQ.Client;
 
 namespace CreditProposalService.Infrastructure.Messaging.Publishers;
@@ -9,40 +10,64 @@ namespace CreditProposalService.Infrastructure.Messaging.Publishers;
 public class RabbitMqPublisher : IEventPublisher
 {
     private readonly IConfiguration _configuration;
+    private readonly ConnectionFactory _factory;
 
     public RabbitMqPublisher(IConfiguration configuration)
     {
         _configuration = configuration;
-    }
 
-    public async Task PublishAsync<T>(T message, CancellationToken cancellationToken)
-    {
-        var factory = new ConnectionFactory
+        _factory = new ConnectionFactory
         {
             HostName = _configuration["RabbitMQ:Host"],
             UserName = _configuration["RabbitMQ:Username"],
-            Password = _configuration["RabbitMQ:Password"]
+            Password = _configuration["RabbitMQ:Password"],
+            AutomaticRecoveryEnabled = true
         };
+    }
 
-        await using var connection = await factory.CreateConnectionAsync(cancellationToken);
-        await using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
+    public async Task PublishAsync<T>(
+        T message,
+        CancellationToken cancellationToken)
+    {
+        var retryPolicy = Policy
+            .Handle<Exception>()
+            .WaitAndRetryAsync(
+                3,
+                attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)));
 
-        var queueName = typeof(T).Name;
+        await retryPolicy.ExecuteAsync(async () =>
+        {
+            await using var connection =
+                await _factory.CreateConnectionAsync(cancellationToken);
 
-        await channel.QueueDeclareAsync(
-            queue: queueName,
-            durable: true,
-            exclusive: false,
-            autoDelete: false,
-            cancellationToken: cancellationToken);
+            await using var channel =
+                await connection.CreateChannelAsync(
+                    cancellationToken: cancellationToken);
 
-        var body = Encoding.UTF8.GetBytes(
-            JsonSerializer.Serialize(message));
+            var queueName = typeof(T).Name;
 
-        await channel.BasicPublishAsync(
-            exchange: "",
-            routingKey: queueName,
-            body: body,
-            cancellationToken: cancellationToken);
+            await channel.QueueDeclareAsync(
+                queue: queueName,
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                cancellationToken: cancellationToken);
+
+            var body = Encoding.UTF8.GetBytes(
+                JsonSerializer.Serialize(message));
+
+            var properties = new BasicProperties
+            {
+                Persistent = true
+            };
+
+            await channel.BasicPublishAsync(
+                exchange: "",
+                routingKey: queueName,
+                mandatory: true,
+                basicProperties: properties,
+                body: body,
+                cancellationToken: cancellationToken);
+        });
     }
 }

@@ -8,6 +8,7 @@ using System.Text.Json;
 using CardService.Application.Commands;
 using CardService.Application.Events;
 using Microsoft.Extensions.Configuration;
+using Polly;
 
 namespace CardService.Infrastructure.Messaging.Consumers;
 
@@ -48,26 +49,45 @@ public class CreditProposalCreatedConsumer : BackgroundService
 
         consumer.ReceivedAsync += async (_, ea) =>
         {
-            var json = Encoding.UTF8.GetString(ea.Body.ToArray());
-            var message = JsonSerializer.Deserialize<CreditProposalCreatedEvent>(json);
+            var retryPolicy = Policy
+                .Handle<Exception>()
+                .WaitAndRetryAsync(
+                    3,
+                    attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)));
 
-            if (message is null)
+            try
             {
+                await retryPolicy.ExecuteAsync(async () =>
+                {
+                    var json = Encoding.UTF8.GetString(ea.Body.ToArray());
+
+                    var message = JsonSerializer
+                        .Deserialize<CreditProposalCreatedEvent>(json);
+
+                    if (message is null)
+                        throw new Exception("Mensagem inválida");
+
+                    using var scope = _scopeFactory.CreateScope();
+                    var mediator = scope.ServiceProvider
+                        .GetRequiredService<IMediator>();
+
+                    await mediator.Send(new CreateCardCommand(
+                        message.ProposalId,
+                        message.CustomerId,
+                        message.CreditLimit,
+                        message.TotalCards
+                    ));
+                });
+
                 await channel.BasicAckAsync(ea.DeliveryTag, false);
-                return;
             }
-
-            using var scope = _scopeFactory.CreateScope();
-            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-
-            await mediator.Send(new CreateCardCommand(
-                message.ProposalId,
-                message.CustomerId,
-                message.CreditLimit,
-                message.TotalCards
-            ));
-
-            await channel.BasicAckAsync(ea.DeliveryTag, false);
+            catch
+            {
+                await channel.BasicNackAsync(
+                    ea.DeliveryTag,
+                    false,
+                    requeue: true);
+            }
         };
 
         await channel.BasicConsumeAsync(

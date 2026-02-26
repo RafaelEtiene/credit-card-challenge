@@ -8,6 +8,7 @@ using System.Text.Json;
 using CreditProposalService.Application.Commands;
 using CreditProposalService.Application.Events;
 using Microsoft.Extensions.Configuration;
+using Polly;
 
 namespace CreditProposalService.Infrastructure.Messaging.Consumers;
 
@@ -48,30 +49,42 @@ public class CustomerCreatedConsumer : BackgroundService
 
         consumer.ReceivedAsync += async (_, ea) =>
         {
+            var retryPolicy = Policy
+                .Handle<Exception>()
+                .WaitAndRetryAsync(
+                    3,
+                    attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)));
+
             try
             {
-                var json = Encoding.UTF8.GetString(ea.Body.ToArray());
-                var message = JsonSerializer.Deserialize<CustomerCreatedEvent>(json);
-
-                if (message is null)
+                await retryPolicy.ExecuteAsync(async () =>
                 {
-                    await channel.BasicNackAsync(ea.DeliveryTag, false, false);
-                    return;
-                }
+                    var json = Encoding.UTF8.GetString(ea.Body.ToArray());
 
-                using var scope = _scopeFactory.CreateScope();
-                var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+                    var message = JsonSerializer
+                        .Deserialize<CustomerCreatedEvent>(json);
 
-                await mediator.Send(new CreateCreditProposalCommand(
-                    message.CustomerId,
-                    message.Score
-                ));
+                    if (message is null)
+                        throw new Exception("Mensagem inválida");
+
+                    using var scope = _scopeFactory.CreateScope();
+                    var mediator = scope.ServiceProvider
+                        .GetRequiredService<IMediator>();
+
+                    await mediator.Send(
+                        new CreateCreditProposalCommand(
+                            message.CustomerId,
+                            message.Score));
+                });
 
                 await channel.BasicAckAsync(ea.DeliveryTag, false);
             }
             catch
             {
-                await channel.BasicNackAsync(ea.DeliveryTag, false, true);
+                await channel.BasicNackAsync(
+                    ea.DeliveryTag,
+                    false,
+                    requeue: true);
             }
         };
 
